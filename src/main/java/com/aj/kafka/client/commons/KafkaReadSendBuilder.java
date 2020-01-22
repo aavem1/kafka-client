@@ -9,8 +9,9 @@ import com.aj.kafka.client.core.transactional.KafkaTransactionalReader;
 import com.aj.kafka.client.core.transactional.KafkaTransactionalSender;
 
 public final class KafkaReadSendBuilder extends KafkaReaderBuilder {
+  private String targetTopicName;
 
-  public static KafkaReadSendBuilder builder(String bootstrap, String topicName, String groupId) {
+  public static KafkaReadSendBuilder builder(String bootstrap, String sourceTopicName, String targetTopicName, String groupId) {
     return new KafkaReadSendBuilder();
   }
 
@@ -22,13 +23,13 @@ public final class KafkaReadSendBuilder extends KafkaReaderBuilder {
           new KafkaTransactionalReader(
               bootstrap, iTaskHandler, topicName, concurrency, beanName, groupId, failureProcessor);
       readerClient.start();
-      senderClient = new KafkaTransactionalSender(bootstrap);
+      senderClient = new KafkaTransactionalSender(bootstrap, targetTopicName);
     } else {
       readerClient =
           new KafkaNonTransactionalReader(
               bootstrap, iTaskHandler, topicName, concurrency, beanName, groupId, failureProcessor);
       readerClient.start();
-      senderClient = new KafkaNonTransactionalSender(bootstrap);
+      senderClient = new KafkaNonTransactionalSender(bootstrap, targetTopicName);
     }
 
     return KafkaClientTemplate.KafkaClientTemplateBuilder.aKafkaClientFactory()

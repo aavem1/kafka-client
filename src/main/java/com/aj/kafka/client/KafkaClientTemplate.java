@@ -53,8 +53,8 @@ public final class KafkaClientTemplate {
   }
 
   public static KafkaReadSendBuilder transactionalClient(
-      String bootstrap, String topicName, String groupId) {
-    return KafkaReadSendBuilder.builder(bootstrap, topicName, groupId);
+      String bootstrap, String sourceTopicName, String targetTopicName, String groupId) {
+    return KafkaReadSendBuilder.builder(bootstrap, sourceTopicName, targetTopicName, groupId);
   }
 
   public static final class KafkaClientTemplateBuilder {

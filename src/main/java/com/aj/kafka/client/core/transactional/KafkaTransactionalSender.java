@@ -17,10 +17,12 @@ import java.util.concurrent.Future;
 
 public class KafkaTransactionalSender implements KafkaSenderClient {
   private String bootstrap;
+  private String topic;
   private KafkaTemplate kafkaTemplate;
 
-  public KafkaTransactionalSender(String bootstrap) {
+  public KafkaTransactionalSender(String bootstrap, String topic) {
     this.bootstrap = bootstrap;
+    this.topic = topic;
     Map<String, Object> config = getProducerConfig();
 
     final DefaultKafkaProducerFactory<Object, Object> producerFactory =

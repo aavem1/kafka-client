@@ -41,11 +41,9 @@ public final class KafkaSenderBuilder {
   public KafkaClientTemplate create() {
     KafkaSenderClient senderClient;
     if (transactional) {
-
-      senderClient = new KafkaTransactionalSender(bootstrap);
+      senderClient = new KafkaTransactionalSender(bootstrap, topicName);
     } else {
-
-      senderClient = new KafkaNonTransactionalSender(bootstrap);
+      senderClient = new KafkaNonTransactionalSender(bootstrap, topicName);
     }
 
     return KafkaClientTemplate.KafkaClientTemplateBuilder.aKafkaClientFactory()
