@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-public class KafkaTransactionalSender implements KafkaSenderClient {
+public class KafkaTransactionalSender<K, V> implements KafkaSenderClient<K, V> {
   private String bootstrap;
   private String topic;
   private KafkaTemplate kafkaTemplate;
@@ -53,17 +53,17 @@ public class KafkaTransactionalSender implements KafkaSenderClient {
   }
 
   @Override
-  public Result send(Message message) {
+  public Result<V> send(Message<K, V> message) {
     return null;
   }
 
   @Override
-  public Future<Result> sendAsync(Message message) {
+  public Future<Result<V>> sendAsync(Message<K, V> message) {
     return null;
   }
 
   @Override
-  public List<Future<Result>> sendBatch(List<Message> message) {
+  public List<Future<Result<V>>> sendBatch(List<Message<K, V>> message) {
     return null;
   }
 }

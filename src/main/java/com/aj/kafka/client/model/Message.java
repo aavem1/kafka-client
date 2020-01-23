@@ -1,4 +1,3 @@
 package com.aj.kafka.client.model;
 
-public class Message {
-}
+public class Message<K, V> {}

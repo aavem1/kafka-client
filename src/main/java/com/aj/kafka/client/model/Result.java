@@ -1,4 +1,3 @@
 package com.aj.kafka.client.model;
 
-public class Result {
-}
+public class Result<V> {}

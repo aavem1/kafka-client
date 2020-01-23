@@ -1,4 +1,3 @@
 package com.aj.kafka.client.exception;
 
-public class CustomException {
-}
+public class CustomException {}

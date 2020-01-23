@@ -9,39 +9,14 @@ import com.aj.kafka.client.handlers.ReadSendTaskHandler;
 import com.aj.kafka.client.model.Message;
 import com.aj.kafka.client.model.Result;
 
-import javax.naming.OperationNotSupportedException;
 import java.util.concurrent.Future;
 
-public final class KafkaClientTemplate {
+public final class KafkaClientTemplate<K, V> {
 
   private KafkaReaderClient kafkaReaderClient;
   private KafkaSenderClient kafkaSenderClient;
 
   private KafkaClientTemplate() {}
-
-  public Result send(Message message) {
-    return kafkaSenderClient.send(message);
-  }
-
-  public Future<Result> sendAsync(Message message)  {
-    return kafkaSenderClient.sendAsync(message);
-  }
-
-  public void stopReader() {
-    kafkaReaderClient.stopReader();
-  }
-
-  public void resumeReader()  {
-    kafkaReaderClient.resumeReader();
-  }
-
-  public void pauseReader()  {
-    kafkaReaderClient.pauseReader();
-  }
-
-  public void readAndSend(ReadSendTaskHandler taskHandler){
-
-  }
 
   public static KafkaReaderBuilder readOnlyClient(
       String bootstrap, String topicName, String groupId) {
@@ -55,6 +30,30 @@ public final class KafkaClientTemplate {
   public static KafkaReadSendBuilder transactionalClient(
       String bootstrap, String sourceTopicName, String targetTopicName, String groupId) {
     return KafkaReadSendBuilder.builder(bootstrap, sourceTopicName, targetTopicName, groupId);
+  }
+
+  public Result<V> send(Message<K, V> message) {
+    return kafkaSenderClient.send(message);
+  }
+
+  public Future<Result<V>> sendAsync(Message<K, V> message) {
+    return kafkaSenderClient.sendAsync(message);
+  }
+
+  public void stopReader() {
+    kafkaReaderClient.stopReader();
+  }
+
+  public void resumeReader() {
+    kafkaReaderClient.resumeReader();
+  }
+
+  public void pauseReader() {
+    kafkaReaderClient.pauseReader();
+  }
+
+  public void readAndSend(ReadSendTaskHandler<K, V> readSendTaskHandler) {
+    readSendTaskHandler.setKafkaSenderClient(kafkaSenderClient);
   }
 
   public static final class KafkaClientTemplateBuilder {

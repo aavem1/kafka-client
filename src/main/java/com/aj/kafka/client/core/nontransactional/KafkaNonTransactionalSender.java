@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-public class KafkaNonTransactionalSender implements KafkaSenderClient {
+public class KafkaNonTransactionalSender<K, V> implements KafkaSenderClient<K, V> {
   private String bootstrap;
   private String topic;
   private KafkaTemplate kafkaTemplate;
@@ -26,7 +26,7 @@ public class KafkaNonTransactionalSender implements KafkaSenderClient {
     Map<String, Object> config = getProducerConfig();
 
     final DefaultKafkaProducerFactory<Object, Object> producerFactory =
-            new DefaultKafkaProducerFactory<>(config);
+        new DefaultKafkaProducerFactory<>(config);
     kafkaTemplate = new KafkaTemplate<>(producerFactory);
   }
 
@@ -53,17 +53,17 @@ public class KafkaNonTransactionalSender implements KafkaSenderClient {
   }
 
   @Override
-  public Result send(Message message) {
+  public Result<V> send(Message<K, V> message) {
     return null;
   }
 
   @Override
-  public Future<Result> sendAsync(Message message) {
+  public Future<Result<V>> sendAsync(Message<K, V> message) {
     return null;
   }
 
   @Override
-  public List<Future<Result>> sendBatch(List<Message> message) {
+  public List<Future<Result<V>>> sendBatch(List<Message<K, V>> message) {
     return null;
   }
 }
