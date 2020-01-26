@@ -1,15 +1,19 @@
 package com.aj.kafka.client.core;
 
-import com.aj.kafka.client.model.Message;
-import com.aj.kafka.client.model.Result;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.util.concurrent.ListenableFuture;
 
-import java.util.List;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 
-public interface KafkaSenderClient<K, V> extends KafkaClient {
-  Result<V> send(Message<K, V> message);
+public interface KafkaSenderClient<K, E> extends KafkaClient {
+  default void send(E event) throws ExecutionException, InterruptedException {
+    final ListenableFuture<SendResult<K, E>> listenableFuture = sendEvent(event);
+    listenableFuture.get();
+  }
 
-  Future<Result<V>> sendAsync(Message<K, V> message);
+  default void sendAsync(E event) {
+    sendEvent(event);
+  }
 
-  List<Future<Result<V>>> sendBatch(List<Message<K, V>> message);
+  ListenableFuture<SendResult<K, E>> sendEvent(E event);
 }

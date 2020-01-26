@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
 
-public class KafkaTransactionalReader implements KafkaReaderClient {
+public final class KafkaTransactionalReader implements KafkaReaderClient {
   private String bootstrap;
   private ITaskHandler iTaskHandler;
   private String topicName;
@@ -49,8 +49,7 @@ public class KafkaTransactionalReader implements KafkaReaderClient {
     final DefaultKafkaConsumerFactory<String, String> consumerFactory =
         new DefaultKafkaConsumerFactory<>(
             consumerConfig(), new StringDeserializer(), new StringDeserializer());
-    ConcurrentMessageListenerContainer container =
-        new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
+    container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setConcurrency(concurrency);
     container.setBeanName(beanName);
     container.setAfterRollbackProcessor(failureProcessor);
@@ -76,11 +75,17 @@ public class KafkaTransactionalReader implements KafkaReaderClient {
   }
 
   @Override
-  public void stopReader() {}
+  public void stopReader() {
+    container.stop();
+  }
 
   @Override
-  public void resumeReader() {}
+  public void resumeReader() {
+    container.resume();
+  }
 
   @Override
-  public void pauseReader() {}
+  public void pauseReader() {
+    container.pause();
+  }
 }

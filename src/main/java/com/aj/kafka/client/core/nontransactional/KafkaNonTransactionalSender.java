@@ -1,31 +1,30 @@
 package com.aj.kafka.client.core.nontransactional;
 
 import com.aj.kafka.client.core.KafkaSenderClient;
-import com.aj.kafka.client.model.Message;
-import com.aj.kafka.client.model.Result;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Future;
 
-public class KafkaNonTransactionalSender<K, V> implements KafkaSenderClient<K, V> {
+public final class KafkaNonTransactionalSender<K, E> implements KafkaSenderClient<K, E> {
   private String bootstrap;
   private String topic;
-  private KafkaTemplate kafkaTemplate;
+  private KafkaTemplate<K, E> kafkaTemplate;
 
   public KafkaNonTransactionalSender(String bootstrap, String topic) {
     this.bootstrap = bootstrap;
     this.topic = topic;
     Map<String, Object> config = getProducerConfig();
 
-    final DefaultKafkaProducerFactory<Object, Object> producerFactory =
+    final DefaultKafkaProducerFactory<K, E> producerFactory =
         new DefaultKafkaProducerFactory<>(config);
     kafkaTemplate = new KafkaTemplate<>(producerFactory);
   }
@@ -53,17 +52,25 @@ public class KafkaNonTransactionalSender<K, V> implements KafkaSenderClient<K, V
   }
 
   @Override
-  public Result<V> send(Message<K, V> message) {
-    return null;
-  }
+  public ListenableFuture<SendResult<K, E>> sendEvent(E event) {
+    final ListenableFuture<SendResult<K, E>> listenableFuture = kafkaTemplate.send(topic, event);
+    listenableFuture.addCallback(
+        new ListenableFutureCallback<SendResult<K, E>>() {
+          @Override
+          public void onSuccess(SendResult<K, E> result) {
+            System.out.println(
+                "Sent Event=["
+                    + event
+                    + "] with offset=["
+                    + result.getRecordMetadata().offset()
+                    + "]");
+          }
 
-  @Override
-  public Future<Result<V>> sendAsync(Message<K, V> message) {
-    return null;
-  }
-
-  @Override
-  public List<Future<Result<V>>> sendBatch(List<Message<K, V>> message) {
-    return null;
+          @Override
+          public void onFailure(Throwable ex) {
+            System.out.println("Unable to send Event=[" + event + "] due to : " + ex.getMessage());
+          }
+        });
+    return listenableFuture;
   }
 }

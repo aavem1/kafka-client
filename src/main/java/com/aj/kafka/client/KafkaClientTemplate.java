@@ -6,15 +6,13 @@ import com.aj.kafka.client.commons.KafkaSenderBuilder;
 import com.aj.kafka.client.core.KafkaReaderClient;
 import com.aj.kafka.client.core.KafkaSenderClient;
 import com.aj.kafka.client.handlers.ReadSendTaskHandler;
-import com.aj.kafka.client.model.Message;
-import com.aj.kafka.client.model.Result;
 
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 
-public final class KafkaClientTemplate<K, V> {
+public final class KafkaClientTemplate<E> {
 
   private KafkaReaderClient kafkaReaderClient;
-  private KafkaSenderClient kafkaSenderClient;
+  private KafkaSenderClient<String, E> kafkaSenderClient;
 
   private KafkaClientTemplate() {}
 
@@ -32,12 +30,16 @@ public final class KafkaClientTemplate<K, V> {
     return KafkaReadSendBuilder.builder(bootstrap, sourceTopicName, targetTopicName, groupId);
   }
 
-  public Result<V> send(Message<K, V> message) {
-    return kafkaSenderClient.send(message);
+  public void send(E event) {
+    try {
+      kafkaSenderClient.send(event);
+    } catch (ExecutionException | InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
-  public Future<Result<V>> sendAsync(Message<K, V> message) {
-    return kafkaSenderClient.sendAsync(message);
+  public void sendAsync(E event) {
+    kafkaSenderClient.sendAsync(event);
   }
 
   public void stopReader() {
@@ -52,7 +54,7 @@ public final class KafkaClientTemplate<K, V> {
     kafkaReaderClient.pauseReader();
   }
 
-  public void readAndSend(ReadSendTaskHandler<K, V> readSendTaskHandler) {
+  public <NE> void readAndSend(ReadSendTaskHandler<E, NE> readSendTaskHandler) {
     readSendTaskHandler.setKafkaSenderClient(kafkaSenderClient);
   }
 
