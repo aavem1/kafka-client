@@ -1,1 +1,1 @@
-# spring-client
+# kafka-client
