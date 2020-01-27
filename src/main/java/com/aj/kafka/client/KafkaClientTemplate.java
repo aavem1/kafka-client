@@ -46,20 +46,18 @@ public final class KafkaClientTemplate<E> {
   }
 
   public void stopReader() {
+    checkClientTemplateReaderOperations();
     kafkaReaderClient.stopReader();
   }
 
   public void resumeReader() {
+    checkClientTemplateReaderOperations();
     kafkaReaderClient.resumeReader();
   }
 
   public void pauseReader() {
+    checkClientTemplateReaderOperations();
     kafkaReaderClient.pauseReader();
-  }
-
-  public <NE> void readAndSend(ReadSendTaskHandler<E, NE> readSendTaskHandler) {
-    checkClientTemplateSenderOperations();
-    readSendTaskHandler.setKafkaSenderClient(kafkaSenderClient);
   }
 
   private void checkClientTemplateSenderOperations() {

@@ -46,7 +46,7 @@ public final class KafkaTransactionalReader<E> implements KafkaReaderClient {
   public void start() {
     ContainerProperties containerProperties = new ContainerProperties(topicName);
     containerProperties.setMessageListener(
-        (MessageListener<String, E>) message -> iTaskHandler.onMessage(message.value()));
+        (MessageListener<String, E>) message -> iTaskHandler.processEvent(message.value()));
 
     final DefaultKafkaConsumerFactory<String, String> consumerFactory =
         new DefaultKafkaConsumerFactory<>(
@@ -54,7 +54,7 @@ public final class KafkaTransactionalReader<E> implements KafkaReaderClient {
     container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setConcurrency(concurrency);
     container.setBeanName(beanName);
-    container.setAfterRollbackProcessor(failureProcessor);
+    //container.setAfterRollbackProcessor(failureProcessor);
     container.start();
   }
 

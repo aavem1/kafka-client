@@ -46,7 +46,7 @@ public final class KafkaNonTransactionalReader<E> implements KafkaReaderClient {
   public void start() {
     ContainerProperties containerProperties = new ContainerProperties(topicName);
     containerProperties.setMessageListener(
-        (MessageListener<String, E>) message -> iTaskHandler.onMessage(message.value()));
+        (MessageListener<String, E>) message -> iTaskHandler.processEvent(message.value()));
 
     final DefaultKafkaConsumerFactory<String, String> consumerFactory =
         new DefaultKafkaConsumerFactory<>(

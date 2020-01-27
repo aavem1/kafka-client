@@ -1,6 +1,9 @@
 package com.aj.kafka.client;
 
+import com.aj.kafka.client.handlers.ReadSendTaskHandler;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ExecutionException;
 
 class KafkaClientTemplateTest {
 
@@ -33,5 +36,41 @@ class KafkaClientTemplateTest {
   }
 
   @Test
-  void readAndSend() {}
+  void readAndSend() throws InterruptedException {
+    final KafkaClientTemplate<String> kafkaClientTemplate =
+        KafkaClientTemplate.transactionalClient(
+                "localhost:9092", "input-topic-source", "input-topic-target", "test-group-id")
+            .concurrency(2)
+            .iTaskHandler(
+                new ReadSendTaskHandler<String>() {
+
+                  @Override
+                  public void onMessage(String event) {
+                    System.out.println("event = " + event);
+                    try {
+                      send(event);
+                    } catch (ExecutionException e) {
+                      e.printStackTrace();
+                    } catch (InterruptedException e) {
+                      e.printStackTrace();
+                    }
+                  }
+
+                  @Override
+                  public void send(String event) throws ExecutionException, InterruptedException {
+                    // process the event
+                    System.out.println("event = " + event);
+                    // publish to target topic
+                    this.getKafkaSenderClient().send(event);
+                  }
+                })
+            .create();
+
+    final KafkaClientTemplate<String> kafkaClient =
+        KafkaClientTemplate.sendOnlyClient("localhost:9092", "input-topic-source")
+            .beanName("bean-name")
+            .create();
+    kafkaClient.send("test-read-committed");
+    Thread.sleep(10000);
+  }
 }

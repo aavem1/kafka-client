@@ -37,7 +37,9 @@ public final class KafkaTransactionalSender<K, E> implements KafkaSenderClient<K
 
     // transaction properties.
     UUID transactionalId = UUID.randomUUID();
-    config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId.toString()); // unique transactional id.
+    config.put(
+        ProducerConfig.TRANSACTIONAL_ID_CONFIG,
+        transactionalId.toString()); // unique transactional id.
     config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
     config.put(ProducerConfig.ACKS_CONFIG, "all");
     config.put(ProducerConfig.RETRIES_CONFIG, 3);
@@ -53,24 +55,33 @@ public final class KafkaTransactionalSender<K, E> implements KafkaSenderClient<K
 
   @Override
   public ListenableFuture<SendResult<K, E>> sendEvent(E event) {
-    final ListenableFuture<SendResult<K, E>> listenableFuture = kafkaTemplate.send(topic, event);
-    listenableFuture.addCallback(
-        new ListenableFutureCallback<SendResult<K, E>>() {
-          @Override
-          public void onSuccess(SendResult<K, E> result) {
-            System.out.println(
-                "Sent Event=["
-                    + event
-                    + "] with offset=["
-                    + result.getRecordMetadata().offset()
-                    + "]");
-          }
+    final ListenableFuture<SendResult<K, E>>[] listenableFuture = new ListenableFuture[1];
+    kafkaTemplate.setTransactionIdPrefix("tx.template.override.");
+    kafkaTemplate.executeInTransaction(
+        operations -> {
+          final ListenableFuture<SendResult<K, E>> sendResultListenableFuture =
+              kafkaTemplate.send(topic, event);
+          listenableFuture[0] = sendResultListenableFuture;
+          sendResultListenableFuture.addCallback(
+              new ListenableFutureCallback<SendResult<K, E>>() {
+                @Override
+                public void onSuccess(SendResult<K, E> result) {
+                  System.out.println(
+                      "Sent Event=["
+                          + event
+                          + "] with offset=["
+                          + result.getRecordMetadata().offset()
+                          + "]");
+                }
 
-          @Override
-          public void onFailure(Throwable ex) {
-            System.out.println("Unable to send Event=[" + event + "] due to : " + ex.getMessage());
-          }
+                @Override
+                public void onFailure(Throwable ex) {
+                  System.out.println(
+                      "Unable to send Event=[" + event + "] due to : " + ex.getMessage());
+                }
+              });
+          return true;
         });
-    return listenableFuture;
+    return listenableFuture[0];
   }
 }

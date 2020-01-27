@@ -3,14 +3,12 @@ package com.aj.kafka.client.commons;
 import com.aj.kafka.client.KafkaClientTemplate;
 import com.aj.kafka.client.core.KafkaReaderClient;
 import com.aj.kafka.client.core.KafkaSenderClient;
-import com.aj.kafka.client.core.nontransactional.KafkaNonTransactionalReader;
-import com.aj.kafka.client.core.nontransactional.KafkaNonTransactionalSender;
 import com.aj.kafka.client.core.transactional.KafkaTransactionalReader;
 import com.aj.kafka.client.core.transactional.KafkaTransactionalSender;
 import com.aj.kafka.client.handlers.ReadSendTaskHandler;
+import org.springframework.kafka.listener.AfterRollbackProcessor;
 
 public final class KafkaReadSendBuilder<E> extends KafkaReaderBuilder {
-  protected ReadSendTaskHandler taskHandler;
   private String targetTopicName;
 
   public KafkaReadSendBuilder(String bootstrap, String topicName, String groupId) {
@@ -23,6 +21,21 @@ public final class KafkaReadSendBuilder<E> extends KafkaReaderBuilder {
     this.targetTopicName = targetTopicName;
   }
 
+  public KafkaReadSendBuilder iTaskHandler(ReadSendTaskHandler<E> iTaskHandler) {
+    this.iTaskHandler = iTaskHandler;
+    return this;
+  }
+
+  public KafkaReadSendBuilder concurrency(int concurrency) {
+    this.concurrency = concurrency;
+    return this;
+  }
+
+  public KafkaReadSendBuilder failureProcessor(AfterRollbackProcessor failureProcessor) {
+    this.failureProcessor = failureProcessor;
+    return this;
+  }
+
   public static KafkaReadSendBuilder builder(
       String bootstrap, String sourceTopicName, String targetTopicName, String groupId) {
     return new KafkaReadSendBuilder(bootstrap, sourceTopicName, groupId, targetTopicName);
@@ -31,19 +44,12 @@ public final class KafkaReadSendBuilder<E> extends KafkaReaderBuilder {
   public KafkaClientTemplate create() {
     KafkaReaderClient readerClient;
     KafkaSenderClient senderClient;
-    if (transactional) {
-      readerClient =
-          new KafkaTransactionalReader(
-              bootstrap, taskHandler, topicName, concurrency, beanName, groupId, failureProcessor);
-      readerClient.start();
-      senderClient = new KafkaTransactionalSender(bootstrap, targetTopicName);
-    } else {
-      readerClient =
-          new KafkaNonTransactionalReader<E>(
-              bootstrap, iTaskHandler, topicName, concurrency, beanName, groupId, failureProcessor);
-      readerClient.start();
-      senderClient = new KafkaNonTransactionalSender(bootstrap, targetTopicName);
-    }
+    readerClient =
+        new KafkaTransactionalReader(
+            bootstrap, iTaskHandler, topicName, concurrency, beanName, groupId, failureProcessor);
+    readerClient.start();
+    senderClient = new KafkaTransactionalSender(bootstrap, targetTopicName);
+    ((ReadSendTaskHandler) iTaskHandler).setKafkaSenderClient(senderClient);
 
     return KafkaClientTemplate.KafkaClientTemplateBuilder.aKafkaClientFactory()
         .kafkaReaderClient(readerClient)

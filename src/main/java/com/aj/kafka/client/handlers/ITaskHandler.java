@@ -2,5 +2,9 @@ package com.aj.kafka.client.handlers;
 
 public interface ITaskHandler<E> {
 
-  void onMessage(E message);
+  default void processEvent(E event) {
+    onMessage(event);
+  }
+
+  void onMessage(E event);
 }
