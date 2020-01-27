@@ -1,6 +1,7 @@
 package com.aj.kafka.client;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 class KafkaClientTemplateTest {
 
@@ -11,6 +12,7 @@ class KafkaClientTemplateTest {
         .clientName("clientName")
         .concurrency(2)
         .create();
+
   }
 
   @Test
