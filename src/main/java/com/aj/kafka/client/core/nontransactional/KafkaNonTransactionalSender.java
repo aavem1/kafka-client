@@ -35,9 +35,6 @@ public final class KafkaNonTransactionalSender<K, E> implements KafkaSenderClien
     config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-    // transaction properties.
-    UUID transactionalId = UUID.randomUUID();
-    config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId); // unique transactional id.
     config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
     config.put(ProducerConfig.ACKS_CONFIG, "all");
     config.put(ProducerConfig.RETRIES_CONFIG, 3);

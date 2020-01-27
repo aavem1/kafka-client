@@ -7,31 +7,24 @@ import com.aj.kafka.client.core.transactional.KafkaTransactionalReader;
 import com.aj.kafka.client.handlers.ITaskHandler;
 import org.springframework.kafka.listener.AfterRollbackProcessor;
 
-public class KafkaReaderBuilder {
+public class KafkaReaderBuilder<E> {
   protected String bootstrap;
-  protected String clientName;
   protected String topicName;
   protected boolean transactional;
   protected String beanName;
-  protected ITaskHandler iTaskHandler;
+  protected ITaskHandler<E> iTaskHandler;
   protected int concurrency;
   protected String groupId;
   protected AfterRollbackProcessor failureProcessor;
 
-  public KafkaReaderBuilder() {}
+  public KafkaReaderBuilder(String bootstrap, String topicName, String groupId) {
+    this.bootstrap = bootstrap;
+    this.topicName = topicName;
+    this.groupId = groupId;
+  }
 
   public static KafkaReaderBuilder builder(String bootstrap, String topicName, String groupId) {
-    return new KafkaReaderBuilder();
-  }
-
-  public KafkaReaderBuilder clientName(String clientName) {
-    this.clientName = clientName;
-    return this;
-  }
-
-  public KafkaReaderBuilder topicName(String topicName) {
-    this.topicName = topicName;
-    return this;
+    return new KafkaReaderBuilder(bootstrap, topicName, groupId);
   }
 
   public KafkaReaderBuilder transactional(boolean transactional) {
@@ -44,7 +37,7 @@ public class KafkaReaderBuilder {
     return this;
   }
 
-  public KafkaReaderBuilder iTaskHandler(ITaskHandler iTaskHandler) {
+  public KafkaReaderBuilder iTaskHandler(ITaskHandler<E> iTaskHandler) {
     this.iTaskHandler = iTaskHandler;
     return this;
   }
@@ -54,18 +47,13 @@ public class KafkaReaderBuilder {
     return this;
   }
 
-  public KafkaReaderBuilder groupId(String groupId) {
-    this.groupId = groupId;
-    return this;
-  }
-
   public KafkaReaderBuilder failureProcessor(AfterRollbackProcessor failureProcessor) {
     this.failureProcessor = failureProcessor;
     return this;
   }
 
-  public KafkaClientTemplate create() {
-    KafkaReaderClient readerClient;
+  public KafkaClientTemplate<E> create() {
+    KafkaReaderClient<E> readerClient;
     if (transactional) {
       readerClient =
           new KafkaTransactionalReader(

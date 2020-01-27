@@ -5,22 +5,21 @@ import com.aj.kafka.client.core.KafkaSenderClient;
 import com.aj.kafka.client.core.nontransactional.KafkaNonTransactionalSender;
 import com.aj.kafka.client.core.transactional.KafkaTransactionalSender;
 
-public final class KafkaSenderBuilder {
+public final class KafkaSenderBuilder<E> {
   private String bootstrap;
-  private String clientName;
   private String topicName;
   private boolean transactional;
   private String beanName;
 
   private KafkaSenderBuilder() {}
 
-  public static KafkaSenderBuilder builder(String bootstrap, String topicName) {
-    return new KafkaSenderBuilder();
+  public KafkaSenderBuilder(String bootstrap, String topicName) {
+    this.bootstrap = bootstrap;
+    this.topicName = topicName;
   }
 
-  public KafkaSenderBuilder clientName(String clientName) {
-    this.clientName = clientName;
-    return this;
+  public static KafkaSenderBuilder builder(String bootstrap, String topicName) {
+    return new KafkaSenderBuilder(bootstrap, topicName);
   }
 
   public KafkaSenderBuilder topicName(String topicName) {
@@ -38,8 +37,8 @@ public final class KafkaSenderBuilder {
     return this;
   }
 
-  public KafkaClientTemplate create() {
-    KafkaSenderClient senderClient;
+  public KafkaClientTemplate<E> create() {
+    KafkaSenderClient<String, E> senderClient;
     if (transactional) {
       senderClient = new KafkaTransactionalSender(bootstrap, topicName);
     } else {

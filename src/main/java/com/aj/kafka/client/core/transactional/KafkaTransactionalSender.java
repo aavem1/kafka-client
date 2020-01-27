@@ -37,7 +37,7 @@ public final class KafkaTransactionalSender<K, E> implements KafkaSenderClient<K
 
     // transaction properties.
     UUID transactionalId = UUID.randomUUID();
-    config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId); // unique transactional id.
+    config.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId.toString()); // unique transactional id.
     config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
     config.put(ProducerConfig.ACKS_CONFIG, "all");
     config.put(ProducerConfig.RETRIES_CONFIG, 3);

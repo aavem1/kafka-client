@@ -1,25 +1,36 @@
 package com.aj.kafka.client;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 class KafkaClientTemplateTest {
 
   @Test
   void send() {
-    KafkaClientTemplate.readOnlyClient("localhost:9092", "input-topic", "input-group")
-        .beanName("bean-name")
-        .clientName("clientName")
-        .concurrency(2)
-        .create();
 
+    final KafkaClientTemplate<String> kafkaClient =
+        KafkaClientTemplate.sendOnlyClient("localhost:9092", "input-topic")
+            .beanName("bean-name")
+            .create();
+    kafkaClient.send("test");
   }
 
   @Test
-  void sendAsync() {}
+  void sendAsync() {
+    final KafkaClientTemplate<String> kafkaClient =
+        KafkaClientTemplate.sendOnlyClient("localhost:9092", "input-topic")
+            .beanName("bean-name")
+            .create();
+    kafkaClient.sendAsync("test");
+  }
 
   @Test
-  void pauseReader() {}
+  void read() throws InterruptedException {
+    KafkaClientTemplate.readOnlyClient("localhost:9092", "input-topic", "test-group-id")
+        .concurrency(2)
+        .iTaskHandler((event) -> System.out.println("Event Received = " + event))
+        .create();
+    Thread.sleep(5000);
+  }
 
   @Test
   void readAndSend() {}

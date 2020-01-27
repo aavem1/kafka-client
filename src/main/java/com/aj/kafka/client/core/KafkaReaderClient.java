@@ -1,6 +1,6 @@
 package com.aj.kafka.client.core;
 
-public interface KafkaReaderClient extends KafkaClient {
+public interface KafkaReaderClient<E> extends KafkaClient {
 
   void start();
 

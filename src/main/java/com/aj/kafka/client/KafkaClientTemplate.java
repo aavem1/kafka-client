@@ -7,11 +7,12 @@ import com.aj.kafka.client.core.KafkaReaderClient;
 import com.aj.kafka.client.core.KafkaSenderClient;
 import com.aj.kafka.client.handlers.ReadSendTaskHandler;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public final class KafkaClientTemplate<E> {
 
-  private KafkaReaderClient kafkaReaderClient;
+  private KafkaReaderClient<E> kafkaReaderClient;
   private KafkaSenderClient<String, E> kafkaSenderClient;
 
   private KafkaClientTemplate() {}
@@ -31,6 +32,7 @@ public final class KafkaClientTemplate<E> {
   }
 
   public void send(E event) {
+    checkClientTemplateSenderOperations();
     try {
       kafkaSenderClient.send(event);
     } catch (ExecutionException | InterruptedException e) {
@@ -39,6 +41,7 @@ public final class KafkaClientTemplate<E> {
   }
 
   public void sendAsync(E event) {
+    checkClientTemplateSenderOperations();
     kafkaSenderClient.sendAsync(event);
   }
 
@@ -55,10 +58,25 @@ public final class KafkaClientTemplate<E> {
   }
 
   public <NE> void readAndSend(ReadSendTaskHandler<E, NE> readSendTaskHandler) {
+    checkClientTemplateSenderOperations();
     readSendTaskHandler.setKafkaSenderClient(kafkaSenderClient);
   }
 
-  public static final class KafkaClientTemplateBuilder {
+  private void checkClientTemplateSenderOperations() {
+    if (Objects.isNull(kafkaSenderClient)) {
+      throw new UnsupportedOperationException(
+          "current KafkaClientTemplate doesn't support this operation");
+    }
+  }
+
+  private void checkClientTemplateReaderOperations() {
+    if (Objects.isNull(kafkaSenderClient)) {
+      throw new UnsupportedOperationException(
+          "current KafkaClientTemplate doesn't support this operation");
+    }
+  }
+
+  public static final class KafkaClientTemplateBuilder<E> {
     private KafkaReaderClient kafkaReaderClient;
     private KafkaSenderClient kafkaSenderClient;
 
@@ -78,8 +96,8 @@ public final class KafkaClientTemplate<E> {
       return this;
     }
 
-    public KafkaClientTemplate build() {
-      KafkaClientTemplate kafkaClientTemplate = new KafkaClientTemplate();
+    public KafkaClientTemplate<E> build() {
+      KafkaClientTemplate<E> kafkaClientTemplate = new KafkaClientTemplate();
       kafkaClientTemplate.kafkaSenderClient = this.kafkaSenderClient;
       kafkaClientTemplate.kafkaReaderClient = this.kafkaReaderClient;
       return kafkaClientTemplate;

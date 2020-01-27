@@ -8,6 +8,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.AfterRollbackProcessor;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.HashMap;
@@ -15,9 +16,9 @@ import java.util.Map;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
 
-public final class KafkaNonTransactionalReader implements KafkaReaderClient {
+public final class KafkaNonTransactionalReader<E> implements KafkaReaderClient {
   private String bootstrap;
-  private ITaskHandler iTaskHandler;
+  private ITaskHandler<E> iTaskHandler;
   private String topicName;
   private int concurrency;
   private String beanName;
@@ -27,7 +28,7 @@ public final class KafkaNonTransactionalReader implements KafkaReaderClient {
 
   public KafkaNonTransactionalReader(
       String bootstrap,
-      ITaskHandler iTaskHandler,
+      ITaskHandler<E> iTaskHandler,
       String topicName,
       int concurrency,
       String beanName,
@@ -44,7 +45,8 @@ public final class KafkaNonTransactionalReader implements KafkaReaderClient {
 
   public void start() {
     ContainerProperties containerProperties = new ContainerProperties(topicName);
-    containerProperties.setMessageListener(iTaskHandler);
+    containerProperties.setMessageListener(
+        (MessageListener<String, E>) message -> iTaskHandler.onMessage(message.value()));
 
     final DefaultKafkaConsumerFactory<String, String> consumerFactory =
         new DefaultKafkaConsumerFactory<>(
@@ -52,7 +54,7 @@ public final class KafkaNonTransactionalReader implements KafkaReaderClient {
     container = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setConcurrency(concurrency);
     container.setBeanName(beanName);
-    container.setAfterRollbackProcessor(failureProcessor);
+    //container.setAfterRollbackProcessor(failureProcessor);
     container.start();
   }
 
